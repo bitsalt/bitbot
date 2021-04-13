@@ -1,5 +1,33 @@
 import os
-import yarl
+import sys
+import v20
+import yaml
+
+DEFAULT_ENV = "bitbot"
+DEFAULT_PATH = "../.account.conf"
+
+
+class ConfigPathError(Exception):
+    """
+    Exception to catch when the account.conf file is not found.
+    """
+    def __init__(self, path):
+        self.path = path
+
+    def __str__(self):
+        return f'Config file {self.path} cannot be loaded.'
+
+
+class ConfigValueError(Exception):
+    """
+    Exception to catch when the config file is missing a required value.
+    """
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return f'Config file is missing value for {self.value}'
+
 
 class Config(object):
     """
@@ -266,3 +294,29 @@ class Config(object):
         )
 
         return ctx
+
+
+def make_config_instance(path=None):
+    """
+    Create a config instance, load its state from the given path, and
+    validate it.
+    """
+    if not path:
+        path = default_config_path()
+
+    config = Config()
+    config.load(path)
+    config.validate()
+    return config
+
+def default_config_path():
+    """
+    Determine the default configuration file path and set it as an environment variable.
+    """
+    global DEFAULT_PATH
+    global DEFAULT_ENV
+
+    os.environ.setdefault('DEFAULT_ENV', DEFAULT_ENV)
+    os.environ.setdefault('DEFAULT_PATH', DEFAULT_PATH)
+    return os.environ.get('DEFAULT_PATH')
+
